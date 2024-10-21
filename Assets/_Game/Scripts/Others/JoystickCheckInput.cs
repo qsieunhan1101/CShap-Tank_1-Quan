@@ -7,6 +7,7 @@ public class JoystickCheckInput : MonoBehaviour, IPointerDownHandler, IPointerUp
     private bool isTouching = false;
     private Vector3 direction = Vector3.zero;
 
+
     public bool IsTouching => isTouching;
     public Vector3 Direction => direction;
     public void OnPointerDown(PointerEventData eventData)

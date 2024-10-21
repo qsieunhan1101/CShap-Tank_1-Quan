@@ -38,4 +38,7 @@ public class TrajectotyLine : MonoBehaviour
 
         return lineRendererPoints;
     }
+    
+
+    // moi tuong quan giua khoang cach va luc ban: luc ban/khoang cach ~ 44 donvi
 }   

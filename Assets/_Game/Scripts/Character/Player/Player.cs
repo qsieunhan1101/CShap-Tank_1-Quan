@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Player : Character
 {
@@ -8,33 +9,22 @@ public class Player : Character
     [SerializeField] private JoystickCheckInput joystickCheckInput;
     [SerializeField] private float speed;
 
-    [SerializeField] private Transform lowerBody;
 
 
-
-    [SerializeField] private VariableJoystick joystickUpperBody;
-    [SerializeField] private VariableJoystick joystickBarrel;
-    [SerializeField] private Transform upperBody;
-    [SerializeField] private Transform barrel;
-
+    [SerializeField] private FixedJoystick joystickShooting;
 
     //
     [SerializeField] private TrajectotyLine trajectotyLine;
 
-    [SerializeField] private GameObject cannonBall;
 
-    [SerializeField] private Transform muzzle;
-
-    [SerializeField, Min(1)] private float cannonBallMass = 30;
-
-    [SerializeField, Min(1)] private float shotForce = 30;
-
-
+    [SerializeField] private Button btnFire;
 
 
     private void Start()
     {
         joystickCheckInput = moveJoystick.GetComponent<JoystickCheckInput>();
+
+        btnFire.onClick.AddListener(Attack);
     }
     private void Update()
     {
@@ -44,20 +34,22 @@ public class Player : Character
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            GameObject ball = Instantiate(cannonBall);
-            ball.transform.position = muzzle.position;
-            Rigidbody rb = ball.GetComponent<Rigidbody>();
-            rb.mass = cannonBallMass;
-            rb.AddForce(muzzle.forward * shotForce, ForceMode.Impulse);
+            Attack();
 
         }
-        RotationUpperBody();
-        RotationBarrel();
+        if (joystickShooting.GetComponent<JoystickCheckInput>().IsTouching == true)
+        {
+            RotationUpperBodyAndBarrel();
+            if (joystickShooting.GetComponent<JoystickCheckInput>().IsTouching == false)
+            {
+                Attack();
+            }
+        }
     }
 
 
 
-    protected override void Move()
+    public void Move()
     {
 
         rb.velocity = new Vector3(moveJoystick.Horizontal * speed, rb.velocity.y, moveJoystick.Vertical * speed);
@@ -65,27 +57,28 @@ public class Player : Character
         Rotation();
     }
 
-    protected override void Rotation()
+    public void Rotation()
     {
         Vector3 dir = joystickCheckInput.Direction.normalized;
-        lowerBody.rotation = Quaternion.LookRotation(dir);
+        if (dir != Vector3.zero)
+        {
+            lowerBody.rotation = Quaternion.LookRotation(dir);
+
+        }
     }
 
-    private void RotationUpperBody()
+    private void RotationUpperBodyAndBarrel()
     {
-        upperBody.Rotate(new Vector3(0, joystickUpperBody.Horizontal, 0));
-    }
+        float rotationVertical = 15;
+        float rotationHorizontal = 60;
+        upperBody.Rotate(new Vector3(0, joystickShooting.Horizontal * rotationHorizontal * Time.deltaTime, 0));
 
-    private void RotationBarrel()
-    {
-        float ro = 15;
+        barrel.Rotate(new Vector3(-joystickShooting.Vertical * rotationVertical * Time.deltaTime, 0, 0));
 
-        barrel.Rotate(new Vector3(joystickBarrel.Vertical * ro * Time.deltaTime, 0, 0));
-      
         Vector3 barrelEulerAngles = barrel.rotation.eulerAngles;
 
         barrelEulerAngles.x = (barrelEulerAngles.x > 180) ? barrelEulerAngles.x - 360 : barrelEulerAngles.x;
-        barrelEulerAngles.x = Mathf.Clamp(barrelEulerAngles.x, 0, 30);
+        barrelEulerAngles.x = Mathf.Clamp(barrelEulerAngles.x, -30, 0);
 
         barrel.rotation = Quaternion.Euler(barrelEulerAngles);
     }
